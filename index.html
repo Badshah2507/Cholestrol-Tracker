@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cholesterol Tracker</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f4f8fb;
+        color: #333;
+    }
+    h1 {
+        text-align: center;
+        color: #2a6f97;
+    }
+    form {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        max-width: 500px;
+        margin: auto;
+    }
+    label {
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+    }
+    input, textarea, button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 5px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    button {
+        background-color: #2a6f97;
+        color: white;
+        border: none;
+        margin-top: 15px;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #1e4d6b;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 30px;
+    }
+    th, td {
+        padding: 8px;
+        border: 1px solid #ccc;
+        text-align: center;
+    }
+    th {
+        background-color: #2a6f97;
+        color: white;
+    }
+</style>
+</head>
+<body>
+
+<h1>Cholesterol Tracker</h1>
+
+<form id="trackerForm">
+    <label>Date</label>
+    <input type="date" id="date" required>
+
+    <label>Meals (Summary)</label>
+    <textarea id="meals" placeholder="E.g., Brown rice, dal, salad..."></textarea>
+
+    <label>Exercise (minutes)</label>
+    <input type="number" id="exercise" placeholder="e.g., 30">
+
+    <label>Weight (kg)</label>
+    <input type="number" id="weight" step="0.1" placeholder="e.g., 70.5">
+
+    <label>Cholesterol Reading (mg/dL)</label>
+    <input type="number" id="cholesterol" placeholder="Optional">
+
+    <button type="submit">Add Entry</button>
+</form>
+
+<table id="dataTable">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Meals</th>
+            <th>Exercise</th>
+            <th>Weight</th>
+            <th>Cholesterol</th>
+        </tr>
+    </thead>
+    <tbody></tbody>
+</table>
+
+<button onclick="exportCSV()">Export CSV</button>
+
+<script>
+    const form = document.getElementById('trackerForm');
+    const tableBody = document.querySelector('#dataTable tbody');
+    let entries = JSON.parse(localStorage.getItem('cholesterolEntries')) || [];
+
+    function renderTable() {
+        tableBody.innerHTML = '';
+        entries.forEach(entry => {
+            let row = `<tr>
+                <td>${entry.date}</td>
+                <td>${entry.meals}</td>
+                <td>${entry.exercise} min</td>
+                <td>${entry.weight} kg</td>
+                <td>${entry.cholesterol || '-'}</td>
+            </tr>`;
+            tableBody.innerHTML += row;
+        });
+    }
+
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const newEntry = {
+            date: document.getElementById('date').value,
+            meals: document.getElementById('meals').value,
+            exercise: document.getElementById('exercise').value,
+            weight: document.getElementById('weight').value,
+            cholesterol: document.getElementById('cholesterol').value
+        };
+        entries.push(newEntry);
+        localStorage.setItem('cholesterolEntries', JSON.stringify(entries));
+        renderTable();
+        form.reset();
+    });
+
+    function exportCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,Date,Meals,Exercise,Weight,Cholesterol\n";
+        entries.forEach(e => {
+            csvContent += `${e.date},"${e.meals}",${e.exercise},${e.weight},${e.cholesterol}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "cholesterol_tracker.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    renderTable();
+</script>
+
+</body>
+</html>
